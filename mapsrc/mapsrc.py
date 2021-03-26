@@ -1,13 +1,13 @@
 """
-This is a sample module generated from the template.
+This is the module that acts as an interface for the src code mapping modules.
 
-The module supplies the below two sample functions:
+The module provides the below function to run the mapping of src code at a given path:
 
 """
 
 
 def run_mapping(path):
-    """Print the text param passed in
+    """run mapping of src code at a given path location
     >>> run_mapping('sample text')
     sample text
 
