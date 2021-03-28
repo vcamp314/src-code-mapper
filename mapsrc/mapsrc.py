@@ -17,7 +17,7 @@ def run_mapping(path: str):
     :return: None
     """
     config = {
-        'extensions': ['.js', '.jsx', '.ts', '.tsx', '.py', '.txt', '.rst']
+        'extensions': ['.js', '.jsx', '.ts', '.tsx', '.vue', '.py', '.txt', '.rst']
     }
     print(scan(path, config['extensions']))
 
@@ -35,14 +35,13 @@ def scan(path: str, extensions: list):
     # get list of file paths, filtered for given extensions, or unfiltered if no
     # extensions are given:
     file_list = [
-        os.path.join(r, f)
-        for r, _, fs in os.walk(path)
-        for f in fs
-        if any(f.endswith(x) for x in extensions) or not extensions
+        os.path.join(root, file)
+        for root, _, files in os.walk(path)
+        for file in files
+        if any(file.endswith(ext) for ext in extensions) or not extensions
     ]
 
     return {'file_list': file_list}
-
 
 
 #############################################################
