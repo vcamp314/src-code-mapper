@@ -22,6 +22,6 @@ How to run:
 - change directory to where you want your PUML documents created
 - run the below command, replacing the path for one pointing to where the source code you wish to map is::
 
-    $ mapsrc "./path/to/src"
+    $ mapsrc ./path/to/src
 
 
