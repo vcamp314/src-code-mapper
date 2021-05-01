@@ -12,7 +12,7 @@ Installation
 Installing package with dependencies
 (update accordingly for actual github link/PyPI)::
 
-    $ python3 -m pip install git+https://github.com/user/mapsrc
+    $ python3 -m pip install git+https://github.com/vcamp314/src-code-mapper
 
 ++++++
 Usage
