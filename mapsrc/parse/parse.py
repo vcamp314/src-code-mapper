@@ -1,11 +1,11 @@
 import re
 
 
-def apply_patterns(txt: str, patterns: list, result_list: list) -> None:
+def apply_patterns(txt: str, patterns: list, data) -> None:
     for pattern in patterns:
         field_to_add_to = pattern['on_match']['add_to']
         pattern_matches = apply_pattern(txt, pattern)
-        result_list.extend(pattern_matches)
+        data[data._fields.index(field_to_add_to)].extend(pattern_matches)
 
 
 def apply_pattern(txt: str, pattern: dict) -> list:

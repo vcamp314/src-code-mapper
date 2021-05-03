@@ -39,7 +39,7 @@ def run_mapping(path: str):
     :return: None
     """
     config = {
-        'extensions': ['.js', '.jsx', '.ts', '.tsx', '.vue', '.py', '.txt', '.rst'],
+        'extensions': ['.js', '.jsx', '.ts', '.tsx', '.vue'],
         'exceptions': [
             'react-app-env.d.ts',
             'reportWebVitals.ts',
@@ -106,14 +106,14 @@ def run_mapping(path: str):
     print()
     root = path[:-1] if path.endswith('/') else path
 
-    try:
-        src_data = scan(root, config)
-        draw(src_data, config)
-        print()
-        print('generation completed!')
-    except:
-        print()
-        print('error - mapping failed')
+    # try:
+    src_data = scan(root, config)
+    draw(src_data, config)
+    print()
+    print('generation completed!')
+    # except:
+    #     print()
+    #     print('error - mapping failed')
 
 
 def scan(root: str, config: dict) -> dict:
@@ -128,24 +128,24 @@ def scan(root: str, config: dict) -> dict:
 
     extensions = config['extensions']
     exceptions = config['exceptions']
+
+    # get list of directories, with their contents (files and sub-directories)
     dirs_by_path = {
-        get_path_from_common_root(file_dir, root): (
-            file_dir,
+        get_path_from_common_root(dir_path, root): (
+            dir_path,
             dir_names,
-            [name for name in file_names if name not in exceptions]
+            [name for name in file_names if is_valid_file_name(name, config)]
         )
-        for file_dir, dir_names, file_names in os.walk(root)
+        for dir_path, dir_names, file_names in os.walk(root)
     }
 
-    # todo: refactor to combine list comprehension with below loop:
+    dirs_by_path = {key: value for key, value in dirs_by_path.items() if value[1] or value[2]}
 
-    # get list of file paths, filtered for given extensions, or unfiltered if no
-    # extensions are given:
+    # get list of file paths
     file_path_list = [
         (file_dir, file_name)
         for file_dir, _, file_names in dirs_by_path.values()
         for file_name in file_names
-        if any(file_name.endswith(ext) for ext in extensions) or not extensions
     ]
 
     files_by_path = {}
@@ -182,6 +182,13 @@ def scan(root: str, config: dict) -> dict:
 
 def get_path_from_common_root(path: str, common_root: str) -> str:
     return path.replace(common_root.rsplit('/', 1)[0] + '/', '')
+
+
+# for detecting if a file should not be mapped, either because its an exception
+# or not in the acceptable extension list, if one was given
+def is_valid_file_name(file_name: str, config: dict) -> bool:
+    return file_name not in config['exceptions']\
+           and (any(file_name.endswith(ext) for ext in config['extensions']) or not config['extensions'])
 
 
 def remove_duplicate_entries(file: CodeFile) -> CodeFile:

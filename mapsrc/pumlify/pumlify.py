@@ -3,9 +3,6 @@ def generate_puml(src_data: dict, mapping_scheme: dict) -> str:
 
     data_list_to_map = mapping_scheme['data_list_to_map']
     data_grouping_map = mapping_scheme['data_grouping_map']
-    entity_name = mapping_scheme['entity_name']
-    connect_by = mapping_scheme['connect_by']
-    connect_path = mapping_scheme['connect_path']
 
     if src_data[data_list_to_map] and src_data[data_grouping_map]:
         # root_group_name = src_data[data_grouping_map][]
@@ -15,7 +12,7 @@ def generate_puml(src_data: dict, mapping_scheme: dict) -> str:
         puml += puml_inits
         puml_connections = ''
         for key, data_list in src_data[data_list_to_map].items():
-            puml_connections += generate_puml_connections(data_list, key, connect_by, entity_name, connect_path)
+            puml_connections += generate_puml_connections(data_list, key, mapping_scheme)
 
         puml += puml_connections
 
@@ -24,10 +21,13 @@ def generate_puml(src_data: dict, mapping_scheme: dict) -> str:
 
 
 def generate_puml_initialization(group_name: str, group_key: str, grouping_map: dict, indent: str) -> str:
+    (key, subgroups, entities) = grouping_map.get(group_key, (group_key, [], []))
+    if not subgroups and not entities:
+        return ''
+
     puml_str = '\n'
     puml_str += indent + 'namespace ' + pumlify_text(group_name) + ' {\n'
     new_indent = indent + '    '
-    (key, subgroups, entities) = grouping_map[group_key]
     for entity in entities:
         # todo: remove extension rsplitting and add this logic to when grouping_map is first created in scan
         entity_name = pumlify_text(entity.rsplit('.', 1)[0])
@@ -55,10 +55,14 @@ def resolve_duplicates(subgroup_name: str, entities: list) -> str:
     return subgroup_name
 
 
-def generate_puml_connections(data_list: list, curr_dir: str, connect_by: str, entity_name_field: str,
-                              connection_path_field: str) -> str:
+def generate_puml_connections(data_list: list, curr_dir: str, mapping_scheme: dict) -> str:
     puml_str = '\n'
     starting_chars = ['./', '..']
+    entity_name_field = mapping_scheme['entity_name']
+    connect_by = mapping_scheme['connect_by']
+    connection_path_field = mapping_scheme['connect_path']
+    include_non_code_imports = mapping_scheme.get('include_non_code_imports')
+
     for item in data_list:
         connection_list = item[item._fields.index(connect_by)]
 
@@ -67,12 +71,20 @@ def generate_puml_connections(data_list: list, curr_dir: str, connect_by: str, e
 
         for connection in connection_list:
             connection_path = connection[connection_path_field]
-            if any([connection_path.startswith(starting) for starting in starting_chars]):
-                puml_str += item_puml_name + ' <-- ' + pumlify_text(
+            if is_connection_to_be_in_drawing(connection_path, starting_chars, include_non_code_imports):
+                puml_line = item_puml_name + ' <-- ' + pumlify_text(
                     resolve_connection_to_puml(connection_path, curr_dir))
-                puml_str += '\n'
+                puml_line += '\n'
+                if puml_line not in puml_str:
+                    puml_str += puml_line
 
     return puml_str
+
+
+def is_connection_to_be_in_drawing(connection_path: str, starting_chars: list, include_non_code_imports: bool):
+    if any([connection_path.startswith(starting) for starting in starting_chars]):
+        return '.' not in connection_path.split('/')[-1] or include_non_code_imports
+    return False
 
 
 # todo: make this generic (string [x:] part as well)
