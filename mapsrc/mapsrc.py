@@ -6,7 +6,6 @@ The module provides the below function to run the mapping of src code at a given
 """
 
 import os
-import re
 import typing
 
 from .parse import parse
@@ -188,7 +187,8 @@ def get_path_from_common_root(path: str, common_root: str) -> str:
 # or not in the acceptable extension list, if one was given
 def is_valid_file_name(file_name: str, config: dict) -> bool:
     return file_name not in config['exceptions']\
-           and (any(file_name.endswith(ext) for ext in config['extensions']) or not config['extensions'])
+           and (any(file_name.endswith(ext) for ext in config['extensions']) or not config['extensions']) \
+           and '.test.' not in file_name
 
 
 def remove_duplicate_entries(file: CodeFile) -> CodeFile:
