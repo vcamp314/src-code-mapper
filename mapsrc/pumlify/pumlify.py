@@ -12,7 +12,7 @@ def generate_puml(src_data: dict, mapping_scheme: dict) -> str:
         puml += puml_inits
         puml_connections = ''
         for key, data_list in src_data[data_list_to_map].items():
-            puml_connections += generate_puml_connections(data_list, key, mapping_scheme)
+            puml_connections += generate_puml_connections(data_list, key, mapping_scheme, src_data[data_grouping_map])
 
         puml += puml_connections
 
@@ -55,9 +55,9 @@ def resolve_duplicates(subgroup_name: str, entities: list) -> str:
     return subgroup_name
 
 
-def generate_puml_connections(data_list: list, curr_dir: str, mapping_scheme: dict) -> str:
+def generate_puml_connections(data_list: list, curr_dir: str, mapping_scheme: dict, grouping_map: dict) -> str:
     puml_str = '\n'
-    starting_chars = ['./', '..']
+    starting_chars = ['./', '..', '@']
     entity_name_field = mapping_scheme['entity_name']
     connect_by = mapping_scheme['connect_by']
     connection_path_field = mapping_scheme['connect_path']
@@ -71,7 +71,7 @@ def generate_puml_connections(data_list: list, curr_dir: str, mapping_scheme: di
 
         for connection in connection_list:
             connection_path = connection[connection_path_field]
-            if is_connection_to_be_in_drawing(connection_path, starting_chars, include_non_code_imports):
+            if is_connection_to_be_in_drawing(connection_path, starting_chars, include_non_code_imports, curr_dir, grouping_map):
                 puml_line = item_puml_name + ' <-- ' + pumlify_text(
                     resolve_connection_to_puml(connection_path, curr_dir))
                 puml_line += '\n'
@@ -81,7 +81,11 @@ def generate_puml_connections(data_list: list, curr_dir: str, mapping_scheme: di
     return puml_str
 
 
-def is_connection_to_be_in_drawing(connection_path: str, starting_chars: list, include_non_code_imports: bool):
+def is_connection_to_be_in_drawing(connection_path: str, starting_chars: list, include_non_code_imports: bool, curr_dir: str,
+                                   grouping_map: dict):
+    root = curr_dir.split('/', 1)[0]
+    if connection_path.startswith('@') and not grouping_map.get(root + '/' + connection_path[1:].split('/')[0]):
+        return False
     if any([connection_path.startswith(starting) for starting in starting_chars]):
         return '.' not in connection_path.split('/')[-1] or include_non_code_imports
     return False

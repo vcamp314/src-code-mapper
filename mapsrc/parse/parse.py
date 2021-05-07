@@ -10,17 +10,18 @@ def apply_patterns(txt: str, patterns: list, data) -> None:
 
 def apply_pattern(txt: str, pattern: dict) -> list:
     if pattern['type'] == 'regex':
-        return process_match(txt, pattern)
+        if re.search(pattern['query'], txt):
+            return process_match(txt, pattern['on_match'])
 
-    if is_string_pattern_match(txt, pattern):
+    elif is_string_pattern_match(txt, pattern):
         return process_match(txt, pattern['on_match'])
 
     return []
 
 
 def is_string_pattern_match(txt: str, pattern: dict) -> bool:
-    if pattern['type'] == 'contains' and pattern['query'] in txt:
-        return True
+    if pattern['type'] == 'contains':
+        return pattern['query'] in txt
 
     pattern_func = getattr(txt, pattern['type'])
     if pattern_func(pattern['query']):
@@ -52,6 +53,12 @@ def apply_preprocessing(txt: str, preprocessing_patterns: list) -> str:
 def extract_properties(txt: str, property_patterns: list) -> dict:
     properties = {}
     for pattern in property_patterns:
+        value_to_set = pattern.get('value')
+
+        if value_to_set is not None:
+            properties[pattern['property_name']] = value_to_set
+            return properties
+
         match = re.search(pattern['regex'], txt)
         if match:
             properties[pattern['property_name']] = match.group(1)

@@ -75,6 +75,54 @@ def run_mapping(path: str):
                         }
                     ]
                 }
+            },
+            {
+                'type': 'regex',
+                'query': r'import\s*?\(',
+                'on_match': {
+                    'add_to': 'imports',
+                    'extraction_regex': r'/(\w+)\'',
+                    'other_property_patterns': [
+                        {
+                            'property_name': 'from_path',
+                            'regex': r'import\s*?\(\'(.*)\'\)'
+                        }
+                    ]
+                }
+            },
+            {
+                'type': 'contains',
+                'query': '}',
+                'on_match': {
+                    'add_to': 'blocks',
+                    'extraction_regex': r'(\w+)',
+                    'preprocessing_patterns': [
+                        '{(.*)}'
+                    ],
+                    'other_property_patterns': [
+                        {
+                            'property_name': 'closed',
+                            'value': True
+                        }
+                    ]
+                }
+            },
+            {
+                'type': 'startswith',
+                'query': 'import {',
+                'on_match': {
+                    'add_to': 'blocks',
+                    'extraction_regex': r'(\w+)',
+                    'preprocessing_patterns': [
+                        '{(.*)}'
+                    ],
+                    'other_property_patterns': [
+                        {
+                            'property_name': 'closed',
+                            'value': False
+                        }
+                    ]
+                }
             }
         ],
         'diagrams': [
@@ -89,7 +137,15 @@ def run_mapping(path: str):
                             'type': 'class',
                             'match_by': {
                                 'field': 'extension',
-                                'value': 'tsx'
+                                'value': ['jsx', 'tsx', 'vue']
+                            }
+                        },
+                        {
+                            'name': 'file_name',
+                            'type': 'entity',
+                            'match_by': {
+                                'field': 'extension',
+                                'value': ['js', 'ts']
                             }
                         }
                     ],
