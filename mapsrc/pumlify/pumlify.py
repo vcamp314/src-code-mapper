@@ -70,6 +70,9 @@ def generate_puml_connections(data_list: list, curr_dir: str, mapping_scheme: di
         item_puml_name = pumlify_text('.'.join(curr_dir.split('/')) + '.' + item_name)
 
         for connection in connection_list:
+            if connection_path_field not in connection:
+                print(item)
+                continue
             connection_path = connection[connection_path_field]
             if is_connection_to_be_in_drawing(connection_path, starting_chars, include_non_code_imports, curr_dir, grouping_map):
                 puml_line = item_puml_name + ' <-- ' + pumlify_text(
